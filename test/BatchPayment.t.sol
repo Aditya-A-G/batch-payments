@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "foundry/Test.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "forge-std/Test.sol";
 import {BatchPayment} from "../src/BatchPayment.sol";
 import {MyToken} from "./MyToken.sol";
 
@@ -10,68 +9,70 @@ contract BatchPaymentTest is Test {
     BatchPayment public batchPayment;
     MyToken public token;
 
-    address public tokenOwner;
-    address public contractOwner;
-    address[] _recipients;
-    uint256[] _amounts;
+    address[] recipients;
+    uint256[] amounts;
+
+    address alice;
+    address bob;
 
     function setUp() public {
-        tokenOwner = makeAddr("TokenOwner");
-        contractOwner = makeAddr("ContractOwner");
-
-        vm.prank(tokenOwner);
         token = new MyToken();
 
-        vm.prank(contractOwner);
+        alice = makeAddr("alice");
+        bob = makeAddr("bob");
 
-        // Set up some _recipients and _amounts
-        _recipients = [address(0x123), address(0x456)];
-        _amounts = [100, 200];
+        recipients = [address(alice), address(bob)];
+        amounts = [100, 200];
 
         batchPayment = new BatchPayment(address(token));
-
-        vm.label(address(this), "BatchPaymentTest");
     }
 
-    function testSuccessfulBatchPayment() public {
-        // Approve the BatchPayment contract to spend tokens
+    function testFailEmptyRecipients() public {
         token.approve(address(batchPayment), 300);
 
-        // Make the batch payment
-        batchPayment.depositAndBatchPayments(300, _recipients, _amounts);
+        recipients = new address[](0);
+        amounts = new uint256[](0);
 
-        // Check that the _recipients received the correct _amounts
-        assertEq(token.balanceOf(_recipients[0]), 100);
-        assertEq(token.balanceOf(_recipients[1]), 200);
+        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+    }
 
-        // Check that the BatchPayment contract's balance is 0
-        assertEq(token.balanceOf(address(batchPayment)), 0);
+    function testFailZeroAddressRecipient() public {
+        token.approve(address(batchPayment), 300);
+
+        address zeroAddress = address(0);
+        recipients = [address(alice), zeroAddress];
+
+        batchPayment.depositAndBatchPayments(300, recipients, amounts);
     }
 
     function testFailMismatchedArrays() public {
-        // Approve the BatchPayment contract to spend tokens
         token.approve(address(batchPayment), 300);
 
-        // Remove an element from the _amounts array
-        _amounts.pop();
+        amounts.pop();
 
-        // This should fail because the _recipients and _amounts arrays do not have the same length
-        batchPayment.depositAndBatchPayments(300, _recipients, _amounts);
+        batchPayment.depositAndBatchPayments(300, recipients, amounts);
     }
 
     function testFailIncorrectTotalAmount() public {
-        // Approve the BatchPayment contract to spend tokens
         token.approve(address(batchPayment), 300);
 
-        // This should fail because the total amount does not match the sum of the _amounts
-        batchPayment.depositAndBatchPayments(299, _recipients, _amounts);
+        batchPayment.depositAndBatchPayments(299, recipients, amounts);
     }
 
     function testFailInsufficientAllowance() public {
-        // Approve the BatchPayment contract to spend fewer tokens than the total amount
         token.approve(address(batchPayment), 299);
 
-        // This should fail because the BatchPayment contract is not approved to spend enough tokens
-        batchPayment.depositAndBatchPayments(300, _recipients, _amounts);
+        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+    }
+
+    function testSuccessfulBatchPayment() public {
+        token.approve(address(batchPayment), 300);
+
+        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+
+        assertEq(token.balanceOf(recipients[0]), 100);
+        assertEq(token.balanceOf(recipients[1]), 200);
+
+        assertEq(token.balanceOf(address(batchPayment)), 0);
     }
 }

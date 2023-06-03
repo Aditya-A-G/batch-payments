@@ -12,30 +12,51 @@ contract BatchPayment is ReentrancyGuard, Ownable {
 
     constructor(address _tokenAddress) {
         require(address(_tokenAddress) != address(0), "Invalid Token Address");
-        
+
         token = IERC20(_tokenAddress);
     }
 
- function depositAndBatchPayments(uint256 totalAmount, address[] memory recipients, uint256[] memory amounts) public nonReentrant onlyOwner {
-    require(recipients.length == amounts.length, "Recipients and amounts array lengths must match");
-    require(recipients.length > 0, "Recipients and amounts array must not be empty");
+    function depositAndBatchPayments(
+        uint256 totalAmount,
+        address[] memory recipients,
+        uint256[] memory amounts
+    ) public nonReentrant onlyOwner {
+        require(
+            recipients.length == amounts.length,
+            "Recipients and amounts array lengths must match"
+        );
+        require(
+            recipients.length > 0,
+            "Recipients and amounts array must not be empty"
+        );
 
-    uint256 sumOfAmounts;
-    for (uint256 i = 0; i < amounts.length; i++) {
-        sumOfAmounts += amounts[i];
+        uint256 sumOfAmounts;
+        for (uint256 i = 0; i < amounts.length; i++) {
+            sumOfAmounts += amounts[i];
+        }
+        require(
+            sumOfAmounts == totalAmount,
+            "Total amount does not match sum of individual amounts"
+        );
+
+        // Transfer the total amount from sender to this contract
+        require(
+            token.transferFrom(msg.sender, address(this), totalAmount),
+            "Transfer failed"
+        );
+
+        // Execute batch payments
+        for (uint256 i = 0; i < recipients.length; i++) {
+            require(
+                recipients[i] != address(0),
+                "Recipient cannot be zero address"
+            );
+            require(
+                token.transfer(recipients[i], amounts[i]),
+                "Token transfer failed"
+            );
+        }
+
+        emit BatchPaymentCompleted(msg.sender, totalAmount);
     }
-    require(sumOfAmounts == totalAmount, "Total amount does not match sum of individual amounts");
-
-    // Transfer the total amount from sender to this contract
-    require(token.transferFrom(msg.sender, address(this), totalAmount), "Transfer failed");
-
-    // Execute batch payments
-    for (uint256 i = 0; i < recipients.length; i++) {
-        // If the transfer fails, revert the transaction
-        require(token.transfer(recipients[i], amounts[i]), "Token transfer failed");
-    }
-
-    emit BatchPaymentCompleted(msg.sender, totalAmount);
-}
-
 }

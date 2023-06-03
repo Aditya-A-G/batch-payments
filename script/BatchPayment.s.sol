@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "forge-std/Script.sol";
 import "../src/MyToken.sol";
-import "../BatchPayment.sol";
+import "../src/BatchPayment.sol";
 
 contract BatchPaymentScript is Script {
     function setUp() public {}
@@ -15,7 +15,6 @@ contract BatchPaymentScript is Script {
 
         MyToken myToken = new MyToken(10000000 * (10 ** 6));
 
-        // Deploy the BatchPayment contract
         new BatchPayment(address(myToken));
     }
 }
