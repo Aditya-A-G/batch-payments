@@ -46,6 +46,7 @@ jobs:
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         delete: ${{ !steps.gas_diff.outputs.markdown }}
+        message: ${{ steps.gas_diff.outputs.markdown }}
 
     - name: Run snapshot
       run: NO_COLOR=1 forge snapshot >> $GITHUB_STEP_SUMMARY
