@@ -6,6 +6,9 @@ ANVIL := anvil
 help: # Show this help
 	@egrep -h '\s#\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?# "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
+install: # Install dependencies
+	@${FORGE} install
+
 compile: # Compile contracts
 	@${FORGE} compile
 
@@ -25,7 +28,7 @@ run_node:
 	@${ANVIL}
 
 deploy_localhost: # Deploy smart contracts to local blockchain node
-	@${FORGE} script ./script/Marketplace.s.sol:MarketplaceScript --broadcast -vvvv --rpc-url http://127.0.0.1:8545
+	@${FORGE} script ./script/BatchPayment.s.sol:BatchPaymentScript --broadcast -vvvv --rpc-url http://127.0.0.1:8545
 
 clean: # Remove old artifacts
 	@${FORGE} clean

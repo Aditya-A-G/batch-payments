@@ -13,25 +13,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+    - name: Install Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: nightly
 
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
+    - name: Run Forge build
+      run: |
+        forge --version
+        forge build --sizes
+      id: build
 
-      - name: Run Forge tests
-        run: |
-          make test_with_gas
-        id: test
+    - name: Run Forge tests and generate gas report
+      run: forge test --gas-report > gasreport.ansi
+      id: test
 
-      - name: Run snapshot
-        run: NO_COLOR=1 forge snapshot >> $GITHUB_STEP_SUMMARY
+    - name: Compare gas reports
+      uses: Rubilmax/foundry-gas-diff@v3.14
+      with:
+        summaryQuantile: 0.9
+        sortCriteria: avg,max
+        sortOrders: desc,asc
+        ignore: test-foundry/**/*
+      id: gas_diff
+
+    - name: Add gas diff to sticky comment
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        delete: ${{ !steps.gas_diff.outputs.markdown }}
+
+    - name: Run snapshot
+      run: NO_COLOR=1 forge snapshot >> $GITHUB_STEP_SUMMARY
