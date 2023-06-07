@@ -11,7 +11,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
     event BatchPaymentCompleted(address operator, uint256 totalAmount);
 
     constructor(address _tokenAddress) {
-        require(address(_tokenAddress) != address(0), "Invalid Token Address");
+        require(address(_tokenAddress) != address(0), "Invalid Token");
 
         token = IERC20(_tokenAddress);
     }
