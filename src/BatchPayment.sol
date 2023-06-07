@@ -11,7 +11,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
     event BatchPaymentCompleted(address operator, uint256 totalAmount);
 
     constructor(address _tokenAddress) {
-        require(address(_tokenAddress) != address(0), "Invalid Token Address");
+        require(address(_tokenAddress) != address(0), "Invalid Token");
 
         token = IERC20(_tokenAddress);
     }
@@ -23,11 +23,11 @@ contract BatchPayment is ReentrancyGuard, Ownable {
     ) public nonReentrant onlyOwner {
         require(
             recipients.length == amounts.length,
-            "Recipients and amounts array lengths must match"
+            "Array Lengths Mismatch"
         );
         require(
             recipients.length > 0,
-            "Recipients and amounts array must not be empty"
+            "Empty Array"
         );
 
         uint256 sumOfAmounts;
@@ -36,7 +36,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
         }
         require(
             sumOfAmounts == totalAmount,
-            "Total amount does not match sum of individual amounts"
+            "Amount Mismatch"
         );
 
         // Transfer the total amount from sender to this contract
@@ -49,7 +49,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
         for (uint256 i = 0; i < recipients.length; i++) {
             require(
                 recipients[i] != address(0),
-                "Recipient cannot be zero address"
+                "Invalid Recipient"
             );
             require(
                 token.transfer(recipients[i], amounts[i]),
