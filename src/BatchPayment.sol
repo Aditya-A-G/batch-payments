@@ -21,22 +21,24 @@ contract BatchPayment is ReentrancyGuard, Ownable {
         address[] memory recipients,
         uint256[] memory amounts
     ) public nonReentrant {
-        require(
-            recipients.length == amounts.length,
-            "Array Lengths Mismatch"
-        );
-        require(
-            recipients.length > 0,
-            "Empty Array"
-        );
+        require(recipients.length == amounts.length, "Array Lengths Mismatch");
+        require(recipients.length > 0, "Empty Array");
 
         uint256 sumOfAmounts;
         for (uint256 i = 0; i < amounts.length; i++) {
             sumOfAmounts += amounts[i];
         }
+
+        require(sumOfAmounts == totalAmount, "Amount Mismatch");
+
         require(
-            sumOfAmounts == totalAmount,
-            "Amount Mismatch"
+            token.balanceOf(msg.sender) >= totalAmount,
+            "Insufficient balance"
+        );
+
+        require(
+            token.allowance(msg.sender, address(this)) >= totalAmount,
+            "Insufficient allowance"
         );
 
         // Transfer the total amount from sender to this contract
@@ -47,10 +49,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
 
         // Execute batch payments
         for (uint256 i = 0; i < recipients.length; i++) {
-            require(
-                recipients[i] != address(0),
-                "Invalid Recipient"
-            );
+            require(recipients[i] != address(0), "Invalid Recipient");
             require(
                 token.transfer(recipients[i], amounts[i]),
                 "Token transfer failed"
