@@ -20,7 +20,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
         uint256 totalAmount,
         address[] memory recipients,
         uint256[] memory amounts
-    ) public nonReentrant onlyOwner {
+    ) public nonReentrant {
         require(
             recipients.length == amounts.length,
             "Array Lengths Mismatch"
