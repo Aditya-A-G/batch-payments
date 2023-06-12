@@ -16,7 +16,7 @@ contract BatchPayment is ReentrancyGuard, Ownable {
         token = IERC20(_tokenAddress);
     }
 
-    function depositAndBatchPayments(
+    function batchTransfer(
         uint256 totalAmount,
         address[] memory recipients,
         uint256[] memory amounts

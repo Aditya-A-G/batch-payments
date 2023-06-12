@@ -33,7 +33,7 @@ contract BatchPaymentTest is Test {
         recipients = new address[](0);
         amounts = new uint256[](0);
 
-        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+        batchPayment.batchTransfer(300, recipients, amounts);
     }
 
     function testFailZeroAddressRecipient() public {
@@ -42,7 +42,7 @@ contract BatchPaymentTest is Test {
         address zeroAddress = address(0);
         recipients = [address(alice), zeroAddress];
 
-        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+        batchPayment.batchTransfer(300, recipients, amounts);
     }
 
     function testFailMismatchedArrays() public {
@@ -50,25 +50,25 @@ contract BatchPaymentTest is Test {
 
         amounts.pop();
 
-        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+        batchPayment.batchTransfer(300, recipients, amounts);
     }
 
     function testFailIncorrectTotalAmount() public {
         token.approve(address(batchPayment), 300);
 
-        batchPayment.depositAndBatchPayments(299, recipients, amounts);
+        batchPayment.batchTransfer(299, recipients, amounts);
     }
 
     function testFailInsufficientAllowance() public {
         token.approve(address(batchPayment), 299);
 
-        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+        batchPayment.batchTransfer(300, recipients, amounts);
     }
 
     function testSuccessfulBatchPayment() public {
         token.approve(address(batchPayment), 300);
 
-        batchPayment.depositAndBatchPayments(300, recipients, amounts);
+        batchPayment.batchTransfer(300, recipients, amounts);
 
         assertEq(token.balanceOf(recipients[0]), 100);
         assertEq(token.balanceOf(recipients[1]), 200);
