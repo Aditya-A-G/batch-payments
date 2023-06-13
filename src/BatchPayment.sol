@@ -8,7 +8,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract BatchPayment is ReentrancyGuard, Ownable {
     IERC20 public immutable token;
 
-    event BatchPaymentCompleted(address operator, uint256 totalAmount);
+    event BatchTransferCompleted(address operator, uint256 totalAmount);
 
     constructor(address _tokenAddress) {
         require(address(_tokenAddress) != address(0), "Invalid Token");
@@ -56,6 +56,6 @@ contract BatchPayment is ReentrancyGuard, Ownable {
             );
         }
 
-        emit BatchPaymentCompleted(msg.sender, totalAmount);
+        emit BatchTransferCompleted(msg.sender, totalAmount);
     }
 }
